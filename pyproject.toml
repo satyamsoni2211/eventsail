@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "emitter"
+version = "0.1.0"
+description = "Library for emitting events and handling them in a decoupled way."
+authors = ["Satyam Soni <satyam.soni@hotmail.co.uk>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.3.0"
+pytest = "^8.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
