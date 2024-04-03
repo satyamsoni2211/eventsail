@@ -1,7 +1,7 @@
 import asyncio
 import pytest
 from concurrent.futures import ThreadPoolExecutor
-from emitter import AsyncEmitter
+from pyemitter import AsyncEmitter
 from unittest.mock import Mock, patch
 
 
@@ -33,7 +33,7 @@ def test_async_emitter_weakref():
     test.reset_mock()
 
 
-@patch("emitter._pool", new_callable=lambda: ThreadPoolExecutor(1))
+@patch("pyemitter._pool", new_callable=lambda: ThreadPoolExecutor(1))
 def test_async_emitter_once(mock_pool):
     emitter = AsyncEmitter()
     test = Mock()
