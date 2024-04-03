@@ -57,13 +57,14 @@ class SyncEmitter(EmitterBase):
             event (str): Name of the event to remove the listener from
             listener (_type_): Listener to remove from the event
         """
-        if event in self._listeners:
+        if (listeners := self._listeners.get(event)) is not None:
+            if not listeners:  # checking if listeners is empty
+                self._listeners.pop(event)
+                return
             try:
-                self._listeners[event].remove(self.__prepare_listener(listener))
+                listeners.remove(self.__prepare_listener(listener))
             except KeyError:
                 ...
-            if not self._listeners[event]:
-                self._listeners.pop(event)
 
     def clear(self, event: str):
         """
@@ -99,8 +100,7 @@ class SyncEmitter(EmitterBase):
         Args:
             event (_type_): Name of the event to fire
         """
-        if event in self._listeners:
-            listeners = self._listeners[event]
+        if listeners := self._listeners.get(event):
             for listener in listeners.copy():
                 if obj := listener():
                     self._call_listener(obj, *args, **kwargs)
@@ -128,7 +128,6 @@ class AsyncEmitter(SyncEmitter):
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
-            warnings.warn("No running event loop found, creating a new one")
             loop = asyncio.get_event_loop()
         return loop
 
@@ -155,7 +154,7 @@ class AsyncEmitter(SyncEmitter):
             list[asyncio.Task]: List of async tasks running in the event loop
         """
         return [
-            i for i in self.all_async_tasks if not i.get_name().startswith(f"listener_{self.ident}")
+            i for i in self.all_async_tasks if i.get_name().startswith(f"listener_{self.ident}")
         ]
 
     def _call_listener(self, listener, *args, **kwargs):
