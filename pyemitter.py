@@ -206,6 +206,9 @@ class Event(EmitterBase):
         self.emitter = self._populate_emitter()
 
     def _populate_emitter(self):
+        """
+        Populate the emitter based on the event type
+        """
         cls = SyncEmitter if self.is_sync else AsyncEmitter
         args = {}
         if not self.is_sync and self.use_asyncio:
@@ -213,23 +216,62 @@ class Event(EmitterBase):
         return cls(**args)
 
     def subscribe(self, listener):
+        """
+        Subscribe a listener to an event
+
+        Args:
+            listener (_type_): listener to subscribe to the event
+        """
         self.emitter.subscribe(self.event, listener)
         return listener
 
     def unsubscribe(self, listener):
+        """
+        Unsubscribe a listener from an event
+
+        Args:
+            listener (_type_): Listener to remove from the event
+        """
         self.emitter.unsubscribe(self.event, listener)
 
     def emit(self, *args, **kwargs):
+        """
+        Fire an event and call all listeners subscribed to it
+        """
         self.emitter.emit(self.event, *args, **kwargs)
 
     def clear(self):
+        """
+        Remove all listeners for a given event
+
+        Args:
+            event (str): Name of the event to remove all listeners
+        """
         self.emitter.clear(self.event)
 
     def once(self, listener):
+        """
+        Subscribe a listener to an event that will be called only once
+
+        Args:
+            listener (_type_): listener to subscribe to the event
+        """
         self.emitter.once(self.event, listener)
 
 
 def event(event: str, is_sync: bool = True, use_asyncio: bool = False) -> Event:
+    """
+    Factory function to create an event
+
+    Args:
+        event (str): Name of the event
+        is_sync (bool, optional): If Event is synchronous. Defaults to True.
+        use_asyncio (bool, optional): If Event supports coroutine execution.
+                                    Defaults to False.
+
+    Returns:
+        Event: Instance of Event class
+    """
     return Event(event, is_sync, use_asyncio)
 
 
