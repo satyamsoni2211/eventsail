@@ -2,7 +2,7 @@ import asyncio
 import pytest
 from concurrent.futures import ThreadPoolExecutor
 from pyemitter import AsyncEmitter
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 
 def test_async_emitter():
@@ -15,6 +15,13 @@ def test_async_emitter():
     emitter.emit("test")
     test.assert_called_once()
     test.reset_mock()
+    emitter.clear("test")
+
+
+def test_for_singletons():
+    emitter = AsyncEmitter()
+    emitter2 = AsyncEmitter()
+    assert emitter is emitter2
 
 
 def test_async_emitter_weakref():
@@ -31,6 +38,7 @@ def test_async_emitter_weakref():
     del abc
     emitter.emit("test")
     test.reset_mock()
+    emitter.clear("test")
 
 
 @patch("pyemitter._pool", new_callable=lambda: ThreadPoolExecutor(1))
@@ -42,21 +50,21 @@ def test_async_emitter_once(mock_pool):
     mock_pool.shutdown()
     test.assert_called_once()
     test.reset_mock()
+    emitter.clear("test")
 
 
 @pytest.mark.asyncio
 async def test_asyncio_async_emitter():
     loop = asyncio.get_event_loop()
     emitter = AsyncEmitter(aio=True)
-    mock_emitter = Mock(spec=AsyncEmitter)
-    mock_emitter.loop = lambda self: loop
-    m = Mock()
+    m = AsyncMock()
 
     async def test():
-        m()
+        await m()
 
     emitter.subscribe("test", test)
     emitter.emit("test")
+    print(asyncio.tasks.all_tasks(loop))
     assert len(emitter.all_async_tasks) == 1
     assert len(emitter.own_async_tasks) == 1
     await asyncio.gather(*emitter.all_async_tasks)
@@ -64,3 +72,4 @@ async def test_asyncio_async_emitter():
     assert len(asyncio.tasks.all_tasks(loop)) >= 1
     await loop.shutdown_asyncgens()
     assert len(emitter.all_async_tasks) == 0
+    emitter.clear("test")

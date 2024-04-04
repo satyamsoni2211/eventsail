@@ -4,6 +4,7 @@ import atexit
 import asyncio
 import inspect
 import warnings
+import functools
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from weakref import ref, WeakMethod
@@ -14,7 +15,23 @@ _pool = ThreadPoolExecutor(max_workers=os.cpu_count())
 atexit.register(_pool.shutdown)
 
 
-class EmitterBase(ABC):
+def singleton(cls):
+    @functools.wraps(cls)
+    def _singleton(*args, **kwargs):
+        # hash the class, args and kwargs
+        # to get a unique hash for each instance with different args
+        hash_ = hash((cls, args, frozenset(kwargs.items())))
+        instance = cls._instances_.get(hash_)
+        if not instance:
+            cls._instances_[hash_] = instance = cls(*args, **kwargs)
+        return instance
+
+    return _singleton
+
+
+class EmitterCore(ABC):
+    _instances_ = defaultdict(None)
+
     @abstractmethod
     def subscribe(self, event: str, listener): ...
     @abstractmethod
@@ -26,8 +43,11 @@ class EmitterBase(ABC):
     @abstractmethod
     def once(self, event: str, listener): ...
 
+    def _call_listener(self, listener, *args, **kwargs):
+        raise NotImplementedError("Method not implemented")  # noqa
 
-class SyncEmitter(EmitterBase):
+
+class EmitterBase(EmitterCore):
     def __init__(self):
         self._listeners = defaultdict(lambda: set())
 
@@ -75,9 +95,6 @@ class SyncEmitter(EmitterBase):
         """
         self._listeners.pop(event)
 
-    def _call_listener(self, listener, *args, **kwargs):
-        listener(*args, **kwargs)
-
     def once(self, event: str, listener):
         """
         Subscribe a listener to an event that will be called only once
@@ -109,8 +126,14 @@ class SyncEmitter(EmitterBase):
                     listeners.remove(listener)
 
 
-class AsyncEmitter(SyncEmitter):
+@singleton
+class SyncEmitter(EmitterBase):
+    def _call_listener(self, listener, *args, **kwargs):
+        listener(*args, **kwargs)
 
+
+@singleton
+class AsyncEmitter(EmitterBase):
     def __init__(self, aio: bool = False):
         """
         Emitter class supporting async listeners
@@ -164,7 +187,7 @@ class AsyncEmitter(SyncEmitter):
             # if listener is a coroutine function
             # create a task and run it
             is_coro and self.loop.create_task(
-                listener(*args, **kwargs), name=f"listener_{self.ident}_{listener.__name__}"
+                listener(*args, **kwargs), name=f"listener_{self.ident}"
             )
             # if listener is a normal function
             # run it in executor to avoid blocking the event loop
@@ -172,6 +195,42 @@ class AsyncEmitter(SyncEmitter):
             return
         # if not aio, run listener in executor
         _pool.submit(listener, *args, **kwargs)
+
+
+@singleton
+class Event(EmitterBase):
+    def __init__(self, event: str, is_sync: bool = True, use_asyncio: bool = False):
+        self.event = event
+        self.is_sync = is_sync
+        self.use_asyncio = use_asyncio
+        self.emitter = self._populate_emitter()
+
+    def _populate_emitter(self):
+        cls = SyncEmitter if self.is_sync else AsyncEmitter
+        args = {}
+        if not self.is_sync and self.use_asyncio:
+            args["aio"] = self.use_asyncio
+        return cls(**args)
+
+    def subscribe(self, listener):
+        self.emitter.subscribe(self.event, listener)
+        return listener
+
+    def unsubscribe(self, listener):
+        self.emitter.unsubscribe(self.event, listener)
+
+    def emit(self, *args, **kwargs):
+        self.emitter.emit(self.event, *args, **kwargs)
+
+    def clear(self):
+        self.emitter.clear(self.event)
+
+    def once(self, listener):
+        self.emitter.once(self.event, listener)
+
+
+def event(event: str, is_sync: bool = True, use_asyncio: bool = False) -> Event:
+    return Event(event, is_sync, use_asyncio)
 
 
 __all__ = ["SyncEmitter", "AsyncEmitter", "EmitterBase"]
