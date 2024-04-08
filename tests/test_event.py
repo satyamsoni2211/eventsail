@@ -1,4 +1,4 @@
-from emitterpy import event, SyncEmitter, AsyncEmitter
+from eventsail import event, SyncEmitter, AsyncEmitter
 from unittest.mock import Mock, patch, AsyncMock
 import time
 import pytest

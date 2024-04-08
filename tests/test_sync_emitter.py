@@ -1,7 +1,7 @@
 import re
 import pytest
 from unittest.mock import Mock
-from emitterpy import SyncEmitter
+from eventsail import SyncEmitter
 
 
 def test_sync_emitter():

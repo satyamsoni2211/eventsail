@@ -1,8 +1,8 @@
-# EMITTERPY
+# EventSail
 
-[![codecov](https://codecov.io/gh/satyamsoni2211/emitterpy/graph/badge.svg?token=1LW83DYL0R)](https://codecov.io/gh/satyamsoni2211/emitterpy)
+[![codecov](https://codecov.io/gh/satyamsoni2211/eventsail/graph/badge.svg?token=1LW83DYL0R)](https://codecov.io/gh/satyamsoni2211/eventsail)
 
-EmitterPy is a minimal observer pattern package which is performant as well as supports both sync and async operations. Born out of utility and curiosity to replicate Javascript `EventEmitter`, here we are with library with similar functionalities.
+EventSail is a minimal observer pattern package which is performant as well as supports both sync and async operations. Born out of utility and curiosity to replicate Javascript `EventEmitter`, here we are with library with similar functionalities.
 
 ## Usage
 
@@ -11,22 +11,22 @@ EmitterPy is a minimal observer pattern package which is performant as well as s
 Package can be installed from `PyPi` using below command.
 
 ```bash
-python -m pip install emitterpy
+python -m pip install eventsail
 ```
 
 If using `poetry` or `pipenv` for packaging, use below command.
 
 ```bash
-poetry add emitterpy
-pipenv install emitterpy
+poetry add eventsail
+pipenv install eventsail
 ```
 
 ### Info
 
-`EmitterPy` has a very minimal configuration to get started. It exports `Event` class which consumes `Emitter` under the hood for firing callbacks for the events. For easing, creation of `Event`, `EmitterPy` also exports `event` method for instantiation.
+`EventSail` has a very minimal configuration to get started. It exports `Event` class which consumes `Emitter` under the hood for firing callbacks for the events. For easing, creation of `Event`, `EventSail` also exports `event` method for instantiation.
 
 ```python
-from emitterpy import event, Event
+from eventsail import event, Event
 test_event: Event = event('test_event_name')
 ```
 
@@ -92,4 +92,4 @@ pytest -s --cov=.
 
 ## License
 
-`EmitterPy` is released under the MIT License. See the bundled LICENSE file for details.
+`EventSail` is released under the MIT License. See the bundled LICENSE file for details.

@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "emitterpy"
+name = "eventsail"
 version = "0.1.0"
 description = "Library for emitting events and handling them in a decoupled way."
 authors = ["Satyam Soni <satyam.soni@hotmail.co.uk>"]
 readme = "README.md"
-homepage = "https://github.com/satyamsoni2211/emitterpy"
-repository = "https://github.com/satyamsoni2211/emitterpy"
+homepage = "https://github.com/satyamsoni2211/eventsail"
+repository = "https://github.com/satyamsoni2211/eventsail"
 keywords = ["events", "emitter", "event-emitter", "event-handling", "event-listener", "event-subscriber", "event-publisher"]
 classifiers = [
     "Development Status :: 3 - Alpha",
