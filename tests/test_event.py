@@ -76,3 +76,16 @@ async def test_asyncio_event():
     assert len(asyncio.tasks.all_tasks(loop)) >= 1
     assert len(test_event.emitter.all_async_tasks) == 0
     test_event.clear()
+
+
+def test_decorator():
+    test_event = event("test")
+    test = Mock()
+
+    @test_event.subscribe
+    def abc():
+        test()
+
+    test_event.emit()
+    test.assert_called_once()
+    assert abc.__name__ == "abc"
