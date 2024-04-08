@@ -257,6 +257,7 @@ class Event(EmitterBase):
             listener (_type_): listener to subscribe to the event
         """
         self.emitter.once(self.event, listener)
+        return listener
 
 
 def event(event: str, is_sync: bool = True, use_asyncio: bool = False) -> Event:

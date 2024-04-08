@@ -89,3 +89,19 @@ def test_decorator():
     test_event.emit()
     test.assert_called_once()
     assert abc.__name__ == "abc"
+
+
+def test_event_call_once_decorator():
+    test = Mock()
+
+    test_event = event("test")
+
+    @test_event.once
+    def abc():
+        test()
+
+    test_event.emit()
+    test.assert_called_once()
+    test_event.emit()
+    test.assert_called_once()
+    test_event.clear()

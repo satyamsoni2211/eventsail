@@ -64,6 +64,15 @@ test_event = event("test", is_sync=False, use_asyncio=True)
 
 This way it will entertain coroutines as well by creating `Task` and placing them over running event loop. For non coroutine methods, it will execute them over loop in a Thread Pool executor, thus preventing blocking of Event loop.
 
+If you want to call a callback/listener only once, you can use `once` method exposed by `Event` object. Post trigger, listener will be automatically unsubscribed.
+
+```python
+@test_event.once
+def foo(*args,**kwargs): ...
+```
+
+Above callback will only be fired once.
+
 ### Unsubscribing a callback
 
 To unsubscribe a callback, you can simply call `unsubscribe` method on Object passing callback you want to unsubscribe.
