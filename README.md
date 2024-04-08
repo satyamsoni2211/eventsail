@@ -1,8 +1,8 @@
-# PYEMITTER
+# EMITTERPY
 
-[![codecov](https://codecov.io/gh/satyamsoni2211/pyemitter/graph/badge.svg?token=1LW83DYL0R)](https://codecov.io/gh/satyamsoni2211/pyemitter)
+[![codecov](https://codecov.io/gh/satyamsoni2211/emitterpy/graph/badge.svg?token=1LW83DYL0R)](https://codecov.io/gh/satyamsoni2211/emitterpy)
 
-PyEmitter is a minimal observer pattern package which is performant as well as supports both sync and async operations. Born out of utility and curiosity to replicate Javascript `EventEmitter`, here we are with library with similar functionalities.
+EmitterPy is a minimal observer pattern package which is performant as well as supports both sync and async operations. Born out of utility and curiosity to replicate Javascript `EventEmitter`, here we are with library with similar functionalities.
 
 ## Usage
 
@@ -11,22 +11,22 @@ PyEmitter is a minimal observer pattern package which is performant as well as s
 Package can be installed from `PyPi` using below command.
 
 ```bash
-python -m pip install pyemitter
+python -m pip install emitterpy
 ```
 
 If using `poetry` or `pipenv` for packaging, use below command.
 
 ```bash
-poetry add pyemitter
-pipenv install pyemitter
+poetry add emitterpy
+pipenv install emitterpy
 ```
 
 ### Info
 
-`PyEmitter` has a very minimal configuration to get started. It exports `Event` class which consumes `Emitter` under the hood for firing callbacks for the events. For easing, creation of `Event`, `PyEmitter` also exports `event` method for instantiation.
+`EmitterPy` has a very minimal configuration to get started. It exports `Event` class which consumes `Emitter` under the hood for firing callbacks for the events. For easing, creation of `Event`, `EmitterPy` also exports `event` method for instantiation.
 
 ```python
-from pyemitter import event, Event
+from emitterpy import event, Event
 test_event: Event = event('test_event_name')
 ```
 
@@ -92,4 +92,4 @@ pytest -s --cov=.
 
 ## License
 
-`PyEmitter` is released under the MIT License. See the bundled LICENSE file for details.
+`EmitterPy` is released under the MIT License. See the bundled LICENSE file for details.
