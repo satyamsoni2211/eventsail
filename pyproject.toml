@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "eventsail"
-version = "0.1.1"
+version = "0.1.2"
 description = "Library for emitting events and handling them in a decoupled way."
 authors = ["Satyam Soni <satyam.soni@hotmail.co.uk>"]
 readme = "README.md"

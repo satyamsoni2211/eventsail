@@ -1,5 +1,9 @@
 # EventSail Changelog
 
+## EventSail 0.1.2
+
+- Removed Singleton decorator and tweaked class to be singleton
+
 ## EventSail 0.1.1
 
 - Added Async api to Event class.
