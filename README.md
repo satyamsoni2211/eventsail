@@ -1,8 +1,10 @@
 # EventSail
 
-[![codecov](https://codecov.io/gh/satyamsoni2211/eventsail/graph/badge.svg?token=1LW83DYL0R)](https://codecov.io/gh/satyamsoni2211/eventsail)
+[![codecov](https://codecov.io/gh/satyamsoni2211/eventsail/graph/badge.svg?token=AWAXXSH30S)](https://codecov.io/gh/satyamsoni2211/eventsail)
 
 EventSail is a minimal observer pattern package which is performant as well as supports both sync and async operations. Born out of utility and curiosity to replicate Javascript `EventEmitter`, here we are with library with similar functionalities.
+
+![codecov graph](https://codecov.io/gh/satyamsoni2211/eventsail/graphs/sunburst.svg?token=AWAXXSH30S)
 
 ## Usage
 
@@ -90,6 +92,21 @@ test_event.clear()
 ```
 
 `Event` class is also singleton class, so you will always get same instance for same set of arguments. This is intentionally kept in place so that we do not loose listeners subscribed.
+
+### Waiting for async tasks
+
+There can be instances where we would need to wait for async emitted tasks to complete before shutdown as this can be critical. `Event` class exposes certain properties containing `async` tasks.
+
+- `Event.all_async_tasks` : This will return all the async tasks scheduled over Event loop for the Emitter.
+- `Event.own_async_tasks` : This will only return async tasks corresponding to the immediate parent Emitter of the Event.
+
+To wait for async tasks to complete, `Event` class exposes awaitable API to wait for tasks to complete. This can be called as below.
+
+```python
+await test_event.wait_for_async_tasks()
+```
+
+This will wait for all the async tasks. This also has a default timeout for 10 seconds post which it will error out.
 
 ## Testing
 

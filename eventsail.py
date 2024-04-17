@@ -5,9 +5,11 @@ import asyncio
 import inspect
 import warnings
 import functools
+from itertools import chain
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from weakref import ref, WeakMethod
+from typing import Optional, Iterable
 from concurrent.futures import ThreadPoolExecutor
 
 _pool = ThreadPoolExecutor(max_workers=os.cpu_count())
@@ -30,7 +32,6 @@ def singleton(cls):
 
 
 class EmitterCore(ABC):
-    _instances_ = defaultdict(None)
 
     @abstractmethod
     def subscribe(self, event: str, listener): ...
@@ -43,13 +44,15 @@ class EmitterCore(ABC):
     @abstractmethod
     def once(self, event: str, listener): ...
 
-    def _call_listener(self, listener, *args, **kwargs):
-        raise NotImplementedError("Method not implemented")  # noqa
-
 
 class EmitterBase(EmitterCore):
+
     def __init__(self):
         self._listeners = defaultdict(lambda: set())
+
+    @staticmethod
+    def get_hash(cls, args, kwargs):
+        return hash((cls, args, frozenset(kwargs.items())))
 
     def __prepare_listener(self, listener):
         # check if listener is an instance method
@@ -128,12 +131,16 @@ class EmitterBase(EmitterCore):
 
 @singleton
 class SyncEmitter(EmitterBase):
+    _instances_ = defaultdict(None)
+
     def _call_listener(self, listener, *args, **kwargs):
         listener(*args, **kwargs)
 
 
 @singleton
 class AsyncEmitter(EmitterBase):
+    _instances_ = defaultdict(None)
+
     def __init__(self, aio: bool = False):
         """
         Emitter class supporting async listeners
@@ -199,6 +206,8 @@ class AsyncEmitter(EmitterBase):
 
 @singleton
 class Event(EmitterBase):
+    _instances_ = defaultdict(None)
+
     def __init__(self, event: str, is_sync: bool = True, use_asyncio: bool = False):
         self.event = event
         self.is_sync = is_sync
@@ -259,6 +268,38 @@ class Event(EmitterBase):
         self.emitter.once(self.event, listener)
         return listener
 
+    @property
+    def all_async_tasks(self) -> Optional[Iterable[asyncio.Task]]:
+        """
+        All async tasks running in the event loop for all emitter instances
+
+        Returns:
+            list[asyncio.Task]: List of all async tasks running in the event loop
+        """
+        return chain.from_iterable(
+            [i.own_async_tasks for i in AsyncEmitter()._instances_.values() if i.aio]
+        )
+
+    @property
+    def own_async_tasks(self) -> Optional[list[asyncio.Task]]:
+        """
+        List of async tasks running in the event loop for current emitter instance
+
+        Returns:
+            list[asyncio.Task]: List of async tasks running in the event loop
+        """
+        if self.is_sync or (not self.is_sync and not self.use_asyncio):
+            warnings.warn("Event is not async, no async tasks to return")
+            return
+        hash_ = self.get_hash(self.emitter.__class__, (), {"aio": self.use_asyncio})
+        return self.emitter._instances_[hash_].own_async_tasks
+
+    async def wait_for_async_tasks(self):
+        """
+        Wait for all async tasks to complete
+        """
+        await asyncio.wait(self.all_async_tasks, timeout=10)
+
 
 def event(event: str, is_sync: bool = True, use_asyncio: bool = False) -> Event:
     """
@@ -275,5 +316,28 @@ def event(event: str, is_sync: bool = True, use_asyncio: bool = False) -> Event:
     """
     return Event(event, is_sync, use_asyncio)
 
+
+def on(event: str, is_sync: bool = True, use_asyncio: bool = False):
+    """
+    Decorator to subscribe a function to an event. Returns listener instance with event bound to
+    the listener instance. Can be accessed using `listener.event`.
+
+    Args:
+        event (str): Name of the event
+        is_sync (bool, optional): If Event is synchronous. Defaults to True.
+        use_asyncio (bool, optional): If Event supports coroutine execution.
+                                    Defaults to False.
+    """
+
+    def _on(listener):
+        event_ = Event(event, is_sync, use_asyncio)
+        event_.subscribe(listener)
+        listener.event = event_
+        return listener
+
+    return _on
+
+
+event.on = on
 
 __all__ = ["SyncEmitter", "AsyncEmitter", "EmitterBase"]

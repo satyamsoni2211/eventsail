@@ -19,6 +19,16 @@ def test_event_call_delegation():
         mock.clear.assert_called_once()
 
 
+def test_sync_event_warning():
+    test_event = event("test", is_sync=False)
+    test = Mock()
+    test_event.subscribe(test)
+    with pytest.warns(Warning) as w:
+        test_event.own_async_tasks
+    assert w[0].message.args[0] == "Event is not async, no async tasks to return"
+    assert len(list(test_event.all_async_tasks)) == 0
+
+
 def test_event_call_once():
     test = Mock()
     test_event = event("test")
@@ -68,13 +78,12 @@ async def test_asyncio_event():
 
     test_event.subscribe(test)
     test_event.emit()
-    print(asyncio.tasks.all_tasks(loop))
-    assert len(test_event.emitter.all_async_tasks) == 1
-    assert len(test_event.emitter.own_async_tasks) == 1
-    await asyncio.gather(*test_event.emitter.all_async_tasks)
+    assert len(list(test_event.all_async_tasks)) == 1
+    assert len(test_event.own_async_tasks) == 1
+    await test_event.wait_for_async_tasks()
     m.assert_called_once()
     assert len(asyncio.tasks.all_tasks(loop)) >= 1
-    assert len(test_event.emitter.all_async_tasks) == 0
+    assert len(list(test_event.all_async_tasks)) == 0
     test_event.clear()
 
 
@@ -105,3 +114,17 @@ def test_event_call_once_decorator():
     test_event.emit()
     test.assert_called_once()
     test_event.clear()
+
+
+def test_event_on():
+    test = Mock()
+    test2 = Mock()
+    event.on("test")(test)
+    event.on("test")(test2)
+    assert test.event is test2.event
+    test.event.emit()
+    test.assert_called_once()
+    test2.assert_called_once()
+    test.event.clear()
+    test.event.emit()
+    test.assert_called_once()
