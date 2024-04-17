@@ -4,7 +4,6 @@ import atexit
 import asyncio
 import inspect
 import warnings
-import functools
 from itertools import chain
 from abc import ABC, abstractmethod
 from collections import defaultdict
@@ -15,20 +14,6 @@ from concurrent.futures import ThreadPoolExecutor
 _pool = ThreadPoolExecutor(max_workers=os.cpu_count())
 
 atexit.register(_pool.shutdown)
-
-
-def singleton(cls):
-    @functools.wraps(cls)
-    def _singleton(*args, **kwargs):
-        # hash the class, args and kwargs
-        # to get a unique hash for each instance with different args
-        hash_ = hash((cls, args, frozenset(kwargs.items())))
-        instance = cls._instances_.get(hash_)
-        if not instance:
-            cls._instances_[hash_] = instance = cls(*args, **kwargs)
-        return instance
-
-    return _singleton
 
 
 class EmitterCore(ABC):
@@ -47,8 +32,17 @@ class EmitterCore(ABC):
 
 class EmitterBase(EmitterCore):
 
-    def __init__(self):
-        self._listeners = defaultdict(lambda: set())
+    def __new__(cls, *args, **kwargs):
+        # tweaked singleton pattern
+        hash_ = cls.get_hash(cls, args, kwargs)
+        if not hasattr(cls, "_instances_"):
+            setattr(cls, "_instances_", defaultdict(None))
+        instance = cls._instances_.get(hash_)
+        if not instance:
+            cls._instances_[hash_] = instance = super().__new__(cls)
+            instance._listeners = defaultdict(set)
+            instance
+        return instance
 
     @staticmethod
     def get_hash(cls, args, kwargs):
@@ -129,17 +123,13 @@ class EmitterBase(EmitterCore):
                     listeners.remove(listener)
 
 
-@singleton
 class SyncEmitter(EmitterBase):
-    _instances_ = defaultdict(None)
 
     def _call_listener(self, listener, *args, **kwargs):
         listener(*args, **kwargs)
 
 
-@singleton
 class AsyncEmitter(EmitterBase):
-    _instances_ = defaultdict(None)
 
     def __init__(self, aio: bool = False):
         """
@@ -204,9 +194,7 @@ class AsyncEmitter(EmitterBase):
         _pool.submit(listener, *args, **kwargs)
 
 
-@singleton
 class Event(EmitterBase):
-    _instances_ = defaultdict(None)
 
     def __init__(self, event: str, is_sync: bool = True, use_asyncio: bool = False):
         self.event = event
