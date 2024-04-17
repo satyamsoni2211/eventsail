@@ -1,6 +1,6 @@
 # EventSail
 
-[![codecov](https://codecov.io/gh/satyamsoni2211/eventsail/graph/badge.svg?token=AWAXXSH30S)](https://codecov.io/gh/satyamsoni2211/eventsail)
+[![codecov](https://codecov.io/gh/satyamsoni2211/eventsail/graph/badge.svg?token=AWAXXSH30S)](https://codecov.io/gh/satyamsoni2211/eventsail) ![PyPI - Implementation](https://img.shields.io/pypi/implementation/eventsail) ![PyPI - Wheel](https://img.shields.io/pypi/wheel/eventsail) ![PyPI - Downloads](https://img.shields.io/pypi/dm/eventsail) ![PyPI - Status](https://img.shields.io/pypi/status/eventsail)
 
 EventSail is a minimal observer pattern package which is performant as well as supports both sync and async operations. Born out of utility and curiosity to replicate Javascript `EventEmitter`, here we are with library with similar functionalities.
 
